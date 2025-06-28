@@ -1,777 +1,406 @@
-<!DOCTYPE html>
+import React, { useState, useEffect } from 'react';
+import { Play, Save, Trash2, Plus, Clock, Target, Dumbbell, Youtube } from 'lucide-react';
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kettlebell Workout App</title>
-    <meta name="description" content="Personal kettlebell workout app with timer and save functionality">
-    <meta name="theme-color" content="#8BC34A">
+const KettlebellWorkoutPlanner = () => {
+  const [savedWorkouts, setSavedWorkouts] = useState([]);
+  const [currentWorkout, setCurrentWorkout] = useState(null);
+  const [formData, setFormData] = useState({
+    bodyFocus: '',
+    timeAvailable: '',
+    goals: '',
+    specificAreas: '',
+    youtubeLink: '',
+    workoutTitle: ''
+  });
 
-```
-<!-- PWA Meta Tags -->
-<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIktldHRsZWJlbGwgV29ya291dCBBcHAiLAogICJzaG9ydF9uYW1lIjogIktCIFdvcmtvdXQiLAogICJkZXNjcmlwdGlvbiI6ICJQZXJzb25hbCBrZXR0bGViZWxsIHdvcmtvdXQgYXBwIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiIzhCQzM0QSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2RtbGxkMEp2ZUQwaU1DQXdJREV5T0NBeU9EaGZReUlnZG1WeWMybHZiajBpTVM0eElpQjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaVBnb2dJRHhrWldaelBnb2dJQ0FnUEhOMGVXeGxQZ29nSUNBZ0lDNWlZWE5sSUhzZ1ptbHNiRG9nSTJZMU5qRmpPVHNnY21Ga2FYVnpPaUF6TURCNGVEdGZMUzRnWVNCN0lHWnBiR3c2SUNNNVl6QXpOekF0TzNsamRIY3RNelZzT1NBMExTNDVkSGdnTkRNdU0xb2lMejRLSUNBZ0lEd3ZjM1I1YkdVK0NpQWdJQ0E4Y0dGMGFDQmtQU0pOTmpRZ09EaGpMVGd1TkNBdE1UWXVOQ0EyTFM0NElTNHlMVEl0TkM0eUxTNGpOekkxTVRnNExUVnNNUzQwSUMweGF5NDNMakZzTkRjZ09UQm1PQzQ1TVhZeE1HTnBaQ0I4TFRCUklXdHRlWGQ0YjJ3Z0l6Y3haRmRPUW5JZ1VHeDJkWGN5SWl3Z1pDNTNiV3g2Wm5rZ2NHMXNMM2RqTnpOMllUQWdTMlE5VXpGaWJYd2dabU5qWm5nZ2FXSnVNWGNnY1NrNUlqNGdOelppTlROM01qVXhJSGxxZW1keWIyWnBTRlU1SWo0Z1oxb2lMejRLSUNBZ0lEeHdZWFJvSUdROUlrMDJORUF6TlM0eVl6QWdNemd1TXlBeU9DNDFMVFUzTGpjZ05qUXROemcwY2pRdU16VXRNVEVnTkM0ekxUSTJaSFF0TVRVdE5DQXhPRFF0TXpjZ01UUXRiamswTFdSMExqTXROVGN1TkNBMkxTNHhJUzQxTFM0dU5MRWlMejRLSUNBOEwyUmxabk0rQ2p3dmMzWm5QZ29LIiwKICAgICAgInNpemVzIjogIjEyOHgxMjgiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+  // Load saved workouts on component mount
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('kettlebellWorkouts') || '[]');
+    setSavedWorkouts(saved);
+  }, []);
 
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+  const workoutTypes = {
+    'Upper Body': {
+      preFatigue: ['KB Offset Push Up', 'KB Horn Tricep Extensions', 'KB Halo'],
+      strength: ['KB Rack Press', 'KB Bent Over Row', 'KB Turkish Get Up'],
+      finisher: ['KB Plank Taps', 'KB Crush Grip Hold', 'KB Halos']
+    },
+    'Lower Body': {
+      preFatigue: ['KB Goblet Squat', 'KB Single Leg RDL', 'KB Curtsy Squat'],
+      strength: ['KB Rack Squat', 'KB Sumo Deadlift', 'KB Lunges'],
+      finisher: ['KB Cossack Squat', 'KB Single Leg Deadlift', 'KB Jump Squat']
+    },
+    'Full Body': {
+      preFatigue: ['KB Swing', 'KB Windmill', 'KB Halo'],
+      strength: ['KB Clean & Press', 'KB Snatch', 'KB Turkish Get Up'],
+      finisher: ['KB Burpee', 'KB Farmer Walk', 'KB Figure 8']
+    },
+    'Core & Conditioning': {
+      preFatigue: ['KB Russian Twist', 'KB Dead Bug', 'KB Hollow Hold'],
+      strength: ['KB Renegade Row', 'KB Side Plank Press', 'KB V-Up'],
+      finisher: ['KB Flutter Kicks', 'KB Mountain Climber', 'KB Bicycle Crunch']
     }
-    
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        line-height: 1.6;
-        background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
-        color: #333;
-        min-height: 100vh;
-        padding: 10px;
-        margin: 0;
-    }
-    
-    .app-container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        overflow: hidden;
-    }
-    
-    .app-header {
-        background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
-        color: white;
-        padding: 20px;
-        text-align: center;
-        position: relative;
-    }
-    
-    .app-title {
-        font-size: 1.8em;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-    
-    .app-subtitle {
-        opacity: 0.9;
-        font-size: 0.9em;
-        margin-bottom: 15px;
-    }
-    
-    .timer-section {
-        background: rgba(255,255,255,0.15);
-        border-radius: 10px;
-        padding: 15px;
-        margin: 15px 0;
-        text-align: center;
-    }
-    
-    .timer-display {
-        font-size: 2.5em;
-        font-weight: bold;
-        margin: 10px 0;
-        font-family: 'Courier New', monospace;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        color: white;
-    }
-    
-    .timer-controls {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
-    }
-    
-    .timer-btn {
-        background: rgba(255,255,255,0.2);
-        border: 2px solid rgba(255,255,255,0.4);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-    }
-    
-    .timer-btn:hover {
-        background: rgba(255,255,255,0.3);
-        transform: scale(1.05);
-    }
-    
-    .timer-btn.active {
-        background: rgba(76, 175, 80, 0.4);
-        border-color: rgba(76, 175, 80, 0.6);
-    }
-    
-    .header-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 15px;
-    }
-    
-    .header-btn {
-        background: rgba(255,255,255,0.2);
-        border: 2px solid rgba(255,255,255,0.3);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.9em;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .header-btn:hover {
-        background: rgba(255,255,255,0.3);
-        transform: scale(1.05);
-    }
-    
-    .save-btn {
-        background: rgba(46, 204, 113, 0.3);
-        border-color: rgba(46, 204, 113, 0.5);
-    }
-    
-    .save-btn:hover {
-        background: rgba(46, 204, 113, 0.4);
-    }
-    
-    .discard-btn {
-        background: rgba(231, 76, 60, 0.3);
-        border-color: rgba(231, 76, 60, 0.5);
-    }
-    
-    .discard-btn:hover {
-        background: rgba(231, 76, 60, 0.4);
-    }
-    
-    .workout-content {
-        padding: 30px;
-        max-height: calc(100vh - 280px);
-        overflow-y: auto;
-        line-height: 1.7;
-    }
-    
-    .workout-content p, .workout-content li {
-        margin-bottom: 12px;
-    }
-    
-    .workout-content ol, .workout-content ul {
-        margin: 15px 0;
-        padding-left: 25px;
-    }
-    
-    .workout-content li {
-        margin: 12px 0;
-        padding: 8px 0;
-    }
-    
-    .workout-info {
-        background: #ecf0f1;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 25px;
-    }
-    
-    .workout-info p {
-        margin: 5px 0;
-        font-weight: 500;
-    }
-    
-    h2 {
-        background: linear-gradient(135deg, #8BC34A, #689F38);
-        color: black;
-        padding: 12px 20px;
-        border-radius: 8px;
-        margin: 25px 0 15px 0;
-        font-size: 1.3em;
-    }
-    
-    h3 {
-        color: #34495e;
-        border-left: 4px solid #8BC34A;
-        padding-left: 15px;
-        margin: 20px 0 10px 0;
-    }
-    
-    .exercise-link {
-        color: #689F38;
-        text-decoration: none;
-        font-weight: 600;
-        border-bottom: 2px solid transparent;
-        transition: all 0.3s ease;
-    }
-    
-    .exercise-link:hover {
-        color: #8BC34A;
-        border-bottom-color: #8BC34A;
-    }
-    
-    .rest-note {
-        font-style: italic;
-        color: #7f8c8d;
-        margin: 10px 0;
-        background: #f8f9fa;
-        padding: 8px 12px;
-        border-radius: 5px;
-    }
-    
-    .tempo-note {
-        font-size: 0.9em;
-        color: #e74c3c;
-        font-weight: 600;
-    }
-    
-    .superset-box {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        margin: 15px 0;
-    }
-    
-    .superset-title {
-        font-weight: bold;
-        color: #495057;
-        margin-bottom: 10px;
-    }
-    
-    .section-time {
-        background: #C8E6C9;
-        color: black;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.9em;
-        font-weight: 600;
-        display: inline-block;
-        margin-left: 10px;
-    }
-    
-    .key-points, .benefits {
-        background: #e8f5e8;
-        padding: 20px;
-        border-radius: 8px;
-        border-left: 5px solid #27ae60;
-        margin: 25px 0;
-    }
-    
-    .benefits {
-        background: #fff3cd;
-        border-left-color: #ffc107;
-    }
-    
-    .checkmark {
-        color: #27ae60;
-        font-weight: bold;
-        margin-right: 8px;
-    }
-    
-    .install-prompt {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #2c3e50;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        display: none;
-        z-index: 1000;
-    }
-    
-    .install-btn {
-        background: #8BC34A;
-        border: none;
-        color: black;
-        padding: 8px 16px;
-        border-radius: 15px;
-        margin-left: 10px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    
-    .workout-selector {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: none;
-    }
-    
-    .workout-type-btn {
-        background: #8BC34A;
-        color: black;
-        border: none;
-        padding: 10px 15px;
-        margin: 5px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-    }
-    
-    .workout-type-btn:hover {
-        background: #689F38;
-        transform: scale(1.05);
-    }
-    
-    @media (max-width: 768px) {
-        .app-container {
-            margin: 0;
-            border-radius: 0;
-            min-height: 100vh;
-        }
-        
-        .header-buttons {
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .header-btn {
-            display: block;
-            margin: 2px 0;
-        }
-        
-        .timer-controls {
-            flex-wrap: wrap;
-        }
-        
-        .workout-content {
-            padding: 20px;
-            max-height: none;
-        }
-        
-        .timer-display {
-            font-size: 2em;
-        }
-    }
-</style>
-```
+  };
 
-</head>
-<body>
-    <div class="app-container">
-        <div class="app-header">
-            <div class="app-title">🏋️ Kettlebell Workout</div>
-            <div class="app-subtitle">Your Personal Training App</div>
+  const generateWorkout = () => {
+    const { bodyFocus, timeAvailable, goals, specificAreas } = formData;
+    
+    if (!bodyFocus || !timeAvailable || !goals) {
+      alert('Please fill in all required fields');
+      return;
+    }
 
-```
-        <div class="timer-section">
-            <div class="timer-display" id="timerDisplay">00:00</div>
-            <div class="timer-controls">
-                <button class="timer-btn" id="startBtn" onclick="startWorkout()">▶️ Start</button>
-                <button class="timer-btn" id="pauseBtn" onclick="pauseWorkout()" style="display: none;">⏸️ Pause</button>
-                <button class="timer-btn" id="stopBtn" onclick="stopWorkout()">⏹️ Stop</button>
+    const timeInMinutes = parseInt(timeAvailable);
+    const exercises = workoutTypes[bodyFocus];
+    
+    // Determine intensity and loading based on goals
+    let intensity, loadingStyle, tempoStyle;
+    if (goals.toLowerCase().includes('strength') || goals.toLowerCase().includes('power')) {
+      intensity = 'High Weight';
+      loadingStyle = 'Heavy (80-90% 1RM)';
+      tempoStyle = 'No tempo restrictions - explosive concentric';
+    } else if (goals.toLowerCase().includes('endurance') || goals.toLowerCase().includes('conditioning')) {
+      intensity = 'High Volume';
+      loadingStyle = 'Light (40-60% 1RM)';
+      tempoStyle = 'Controlled - 2:1:2:1 (eccentric:pause:concentric:pause)';
+    } else {
+      intensity = 'Time Under Tension';
+      loadingStyle = 'Medium (60-75% 1RM)';
+      tempoStyle = 'Slow tempo - 3:2:1:2 for maximum TUT';
+    }
+
+    // Calculate time distribution
+    const warmupTime = Math.max(5, Math.floor(timeInMinutes * 0.15));
+    const cooldownTime = Math.max(5, Math.floor(timeInMinutes * 0.15));
+    const strengthTime = timeInMinutes - warmupTime - cooldownTime;
+
+    const workout = {
+      id: Date.now(),
+      title: formData.workoutTitle || `${bodyFocus} - ${new Date().toLocaleDateString()}`,
+      bodyFocus,
+      timeAvailable: timeInMinutes,
+      goals,
+      specificAreas,
+      youtubeLink: formData.youtubeLink,
+      intensity,
+      loadingStyle,
+      tempoStyle,
+      phases: {
+        warmup: {
+          time: warmupTime,
+          exercises: exercises.preFatigue.map(exercise => ({
+            name: exercise,
+            sets: 2,
+            reps: intensity === 'High Volume' ? '15-20' : intensity === 'High Weight' ? '5-8' : '8-12',
+            weight: 'Light - Movement Prep',
+            tempo: '2:0:2:0 - controlled movement',
+            rest: '30-45 seconds'
+          }))
+        },
+        strength: {
+          time: strengthTime,
+          exercises: exercises.strength.map(exercise => ({
+            name: exercise,
+            sets: intensity === 'High Volume' ? 4 : intensity === 'High Weight' ? 5 : 3,
+            reps: intensity === 'High Volume' ? '15-25' : intensity === 'High Weight' ? '3-6' : '8-12',
+            weight: loadingStyle,
+            tempo: tempoStyle,
+            rest: intensity === 'High Weight' ? '2-3 minutes' : intensity === 'High Volume' ? '45-60 seconds' : '60-90 seconds'
+          }))
+        },
+        cooldown: {
+          time: cooldownTime,
+          exercises: exercises.finisher.map(exercise => ({
+            name: exercise,
+            sets: 2,
+            reps: '30 seconds' + (intensity === 'High Volume' ? ' each' : ''),
+            weight: 'Light - Recovery Focus',
+            tempo: 'Slow and controlled',
+            rest: '15-30 seconds'
+          }))
+        }
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    setCurrentWorkout(workout);
+  };
+
+  const saveWorkout = () => {
+    if (!currentWorkout) return;
+    
+    const updated = [...savedWorkouts, currentWorkout];
+    setSavedWorkouts(updated);
+    localStorage.setItem('kettlebellWorkouts', JSON.stringify(updated));
+    alert('Workout saved successfully!');
+  };
+
+  const deleteWorkout = (id) => {
+    const updated = savedWorkouts.filter(w => w.id !== id);
+    setSavedWorkouts(updated);
+    localStorage.setItem('kettlebellWorkouts', JSON.stringify(updated));
+  };
+
+  const loadWorkout = (workout) => {
+    setCurrentWorkout(workout);
+    setFormData({
+      bodyFocus: workout.bodyFocus,
+      timeAvailable: workout.timeAvailable.toString(),
+      goals: workout.goals,
+      specificAreas: workout.specificAreas,
+      youtubeLink: workout.youtubeLink || '',
+      workoutTitle: workout.title
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      bodyFocus: '',
+      timeAvailable: '',
+      goals: '',
+      specificAreas: '',
+      youtubeLink: '',
+      workoutTitle: ''
+    });
+    setCurrentWorkout(null);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-orange-600 mb-2">FBB Kettlebell Workout Planner</h1>
+        <p className="text-gray-600">Functional Bodybuilding inspired kettlebell training</p>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Input Form */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center">
+            <Target className="mr-2 text-orange-500" />
+            Workout Configuration
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What do you want to work on? *
+              </label>
+              <select
+                value={formData.bodyFocus}
+                onChange={(e) => setFormData({...formData, bodyFocus: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="">Select focus area</option>
+                <option value="Upper Body">Upper Body</option>
+                <option value="Lower Body">Lower Body</option>
+                <option value="Full Body">Full Body</option>
+                <option value="Core & Conditioning">Core & Conditioning</option>
+              </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Time Available (minutes) *
+              </label>
+              <input
+                type="number"
+                value={formData.timeAvailable}
+                onChange={(e) => setFormData({...formData, timeAvailable: e.target.value})}
+                placeholder="e.g., 45"
+                min="15"
+                max="120"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Key Goals for Session *
+              </label>
+              <textarea
+                value={formData.goals}
+                onChange={(e) => setFormData({...formData, goals: e.target.value})}
+                placeholder="e.g., Build strength, improve conditioning, work on form, etc."
+                rows="3"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Specific Areas to Address
+              </label>
+              <input
+                type="text"
+                value={formData.specificAreas}
+                onChange={(e) => setFormData({...formData, specificAreas: e.target.value})}
+                placeholder="e.g., Weak grip, shoulder mobility, etc."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <Youtube className="mr-2 text-red-500" size={16} />
+                YouTube Reference Link
+              </label>
+              <input
+                type="url"
+                value={formData.youtubeLink}
+                onChange={(e) => setFormData({...formData, youtubeLink: e.target.value})}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Workout Title (optional)
+              </label>
+              <input
+                type="text"
+                value={formData.workoutTitle}
+                onChange={(e) => setFormData({...formData, workoutTitle: e.target.value})}
+                placeholder="Custom workout name"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={generateWorkout}
+                className="flex-1 bg-orange-600 text-white p-3 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center"
+              >
+                <Play className="mr-2" size={20} />
+                Generate Workout
+              </button>
+              <button
+                onClick={resetForm}
+                className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
-        
-        <div class="header-buttons">
-            <button class="header-btn save-btn" onclick="saveCurrentWorkout()">💾 Save</button>
-            <button class="header-btn discard-btn" onclick="discardWorkout()">🗑️ Discard</button>
-            <button class="header-btn" onclick="toggleWorkoutSelector()">🔄 New Workout</button>
+
+        {/* Generated Workout Display */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold flex items-center">
+              <Dumbbell className="mr-2 text-orange-500" />
+              Generated Workout
+            </h2>
+            {currentWorkout && (
+              <button
+                onClick={saveWorkout}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+              >
+                <Save className="mr-2" size={16} />
+                Save
+              </button>
+            )}
+          </div>
+
+          {currentWorkout ? (
+            <div className="space-y-6">
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold text-orange-800 mb-2">{currentWorkout.title}</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <p><strong>Focus:</strong> {currentWorkout.bodyFocus}</p>
+                  <p><strong>Duration:</strong> {currentWorkout.timeAvailable} minutes</p>
+                  <p><strong>Style:</strong> {currentWorkout.intensity}</p>
+                  <p><strong>Loading:</strong> {currentWorkout.loadingStyle}</p>
+                </div>
+                {currentWorkout.youtubeLink && (
+                  <div className="mt-3">
+                    <a
+                      href={currentWorkout.youtubeLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-600 hover:text-red-700 flex items-center"
+                    >
+                      <Youtube className="mr-2" size={16} />
+                      Reference Video
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Workout Phases */}
+              {Object.entries(currentWorkout.phases).map(([phase, data]) => (
+                <div key={phase} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center mb-3">
+                    <Clock className="mr-2 text-gray-600" size={16} />
+                    <h4 className="text-lg font-semibold capitalize">{phase}</h4>
+                    <span className="ml-auto text-sm text-gray-600">{data.time} minutes</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {data.exercises.map((exercise, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded">
+                        <h5 className="font-medium mb-2">{exercise.name}</h5>
+                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                          <p><strong>Sets:</strong> {exercise.sets}</p>
+                          <p><strong>Reps:</strong> {exercise.reps}</p>
+                          <p><strong>Weight:</strong> {exercise.weight}</p>
+                          <p><strong>Rest:</strong> {exercise.rest}</p>
+                          <p className="col-span-2"><strong>Tempo:</strong> {exercise.tempo}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-12">
+              <Dumbbell className="mx-auto mb-4 text-gray-300" size={48} />
+              <p>Fill out the form and click "Generate Workout" to see your custom plan</p>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Saved Workouts */}
+      {savedWorkouts.length > 0 && (
+        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center">
+            <Save className="mr-2 text-green-600" />
+            Saved Workouts ({savedWorkouts.length})
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {savedWorkouts.map((workout) => (
+              <div key={workout.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-lg mb-2">{workout.title}</h3>
+                <div className="text-sm text-gray-600 space-y-1 mb-4">
+                  <p><strong>Focus:</strong> {workout.bodyFocus}</p>
+                  <p><strong>Duration:</strong> {workout.timeAvailable} min</p>
+                  <p><strong>Created:</strong> {new Date(workout.createdAt).toLocaleDateString()}</p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => loadWorkout(workout)}
+                    className="flex-1 bg-orange-600 text-white py-2 px-3 rounded text-sm hover:bg-orange-700 transition-colors"
+                  >
+                    Load
+                  </button>
+                  <button
+                    onClick={() => deleteWorkout(workout.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-    
-    <div class="workout-content">
-        <div class="workout-selector" id="workoutSelector">
-            <h3>Choose Your Workout Type:</h3>
-            <button class="workout-type-btn" onclick="loadWorkout('strength')">💪 40min Upper Body Strength</button>
-            <button class="workout-type-btn" onclick="loadWorkout('morning')">🌅 20min Morning Flow</button>
-            <button class="workout-type-btn" onclick="loadWorkout('lower')">🦵 Lower Body Focus</button>
-            <button class="workout-type-btn" onclick="loadWorkout('hiit')">🔥 HIIT Kettlebell</button>
-            <button class="workout-type-btn" onclick="loadWorkout('recovery')">🧘 Recovery & Mobility</button>
-            <button class="workout-type-btn" onclick="showSavedWorkouts()" style="background: #27ae60;">📁 My Saved Workouts</button>
-            <button class="workout-type-btn" onclick="hideWorkoutSelector()" style="background: #95a5a6;">❌ Cancel</button>
-        </div>
-        
-        <div class="workout-selector" id="savedWorkoutsSelector" style="display: none;">
-            <h3>My Saved Workouts:</h3>
-            <div id="savedWorkoutsList"></div>
-            <button class="workout-type-btn" onclick="hideSavedWorkouts()" style="background: #95a5a6;">⬅️ Back</button>
-        </div>
-        
-        <div id="workoutContent">
-            <div class="workout-info">
-                <p><strong>Equipment:</strong> Single kettlebell (moderate to heavy weight)</p>
-                <p><strong>Focus:</strong> Back, biceps, shoulders, triceps, core, and balance</p>
-                <p><strong>Duration:</strong> 40 minutes</p>
-                <p><strong>Structure:</strong> Flow warm-up → 2 strength components → core/balance cool-down</p>
-            </div>
-
-            <h2>Upper Body Flow Warm-Up <span class="section-time">8 minutes</span></h2>
-            <p><strong>Complete 3 rounds, flowing smoothly between exercises</strong></p>
-            
-            <ol>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+halo+demonstration" target="_blank" class="exercise-link">KB Halo</a> - 5 reps each direction
-                    <br><small>Wake up shoulders and thoracic spine</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+bottoms+up+clean" target="_blank" class="exercise-link">Alternating Bottoms Up KB Clean</a> - 8 reps total
-                    <br><small>Activate grip and shoulder stability</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+arm+bar" target="_blank" class="exercise-link">KB Arm Bar</a> - 3 reps each side
-                    <br><small>Shoulder mobility and stability</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+push+up" target="_blank" class="exercise-link">KB Push-Up</a> - 6-8 reps
-                    <br><small>Hands on KB handle, activate chest and triceps</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+bent+over+row" target="_blank" class="exercise-link">KB Bent Over Row</a> - 8 reps each arm
-                    <br><small>Light weight, activate posterior chain</small>
-                </li>
-            </ol>
-            
-            <p class="rest-note">Rest 45 seconds between rounds</p>
-
-            <h2>Strength Component 1: Back & Biceps <span class="section-time">12 minutes</span></h2>
-            
-            <div class="superset-box">
-                <div class="superset-title">Superset A (3-4 sets)</div>
-                <ol>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+gorilla+row" target="_blank" class="exercise-link">Gorilla Row</a> - 6-8 reps per arm
-                        <br><small class="tempo-note">30X1 tempo (3 sec down, 0 pause, explosive up, 1 sec pause)</small>
-                    </li>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+horn+grip+bicep+curl" target="_blank" class="exercise-link">KB Horn Grip Bicep Curl</a> - 8-10 reps
-                        <br><small class="tempo-note">20X0 tempo (2 sec down, controlled up)</small>
-                    </li>
-                </ol>
-                <p class="rest-note">Rest 30 seconds between exercises, 90 seconds between sets</p>
-            </div>
-
-            <div class="superset-box">
-                <div class="superset-title">Superset B (3-4 sets)</div>
-                <ol>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+chainsaw+row" target="_blank" class="exercise-link">KB Chainsaw Row</a> - 6-8 reps per arm
-                        <br><small class="tempo-note">20X0 tempo</small>
-                    </li>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+half+kneeling+bicep+curl" target="_blank" class="exercise-link">Half Kneeling KB Eccentric Bicep Curl</a> - 5-6 reps per arm
-                        <br><small class="tempo-note">50X0 tempo (5 sec eccentric focus)</small>
-                    </li>
-                </ol>
-                <p class="rest-note">Rest 30 seconds between exercises, 90 seconds between sets</p>
-            </div>
-
-            <h2>Strength Component 2: Shoulders & Triceps <span class="section-time">12 minutes</span></h2>
-            
-            <div class="superset-box">
-                <div class="superset-title">Superset C (3-4 sets)</div>
-                <ol>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+seated+see+saw+press" target="_blank" class="exercise-link">Seated KB See-Saw Press</a> - 6-8 reps per arm
-                        <br><small class="tempo-note">30X1 tempo</small>
-                    </li>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+overhead+tricep+extension" target="_blank" class="exercise-link">Tall Kneeling KB Overhead Tricep Extension</a> - 8-10 reps
-                        <br><small class="tempo-note">30X0 tempo</small>
-                    </li>
-                </ol>
-                <p class="rest-note">Rest 30 seconds between exercises, 90 seconds between sets</p>
-            </div>
-
-            <div class="superset-box">
-                <div class="superset-title">Superset D (3-4 sets)</div>
-                <ol>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+half+kneeling+press" target="_blank" class="exercise-link">Half Kneeling KB Press</a> - 5-6 reps per arm
-                        <br><small class="tempo-note">20X0 tempo</small>
-                    </li>
-                    <li><a href="https://www.youtube.com/results?search_query=kettlebell+floor+press+tricep" target="_blank" class="exercise-link">KB Crush Grip Floor Press</a> - 8-10 reps
-                        <br><small class="tempo-note">21X1 tempo</small>
-                        <br><small>Squeeze KB sides, focus on tricep and inner chest</small>
-                    </li>
-                </ol>
-                <p class="rest-note">Rest 30 seconds between exercises, 90 seconds between sets</p>
-            </div>
-
-            <h2>Core & Balance Cool-Down <span class="section-time">8 minutes</span></h2>
-            <p><strong>Complete 2-3 rounds, focusing on quality and control</strong></p>
-            
-            <ol>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+turkish+sit+up" target="_blank" class="exercise-link">KB Turkish Sit-Up</a> - 3-4 reps per arm
-                    <br><small>Slow and controlled, focus on core stability</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+windmill" target="_blank" class="exercise-link">KB Windmill</a> - 3-4 reps per side
-                    <br><small>Light weight, focus on mobility and balance</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+bottoms+up+carry" target="_blank" class="exercise-link">Bottoms Up KB Carry</a> - 20 steps per arm
-                    <br><small>Challenge grip, core, and shoulder stability</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+hollow+body+pull+over" target="_blank" class="exercise-link">KB Hollow Body Pull Over</a> - 6-8 reps
-                    <br><small>Slow and controlled, focus on lat stretch</small>
-                </li>
-                <li><a href="https://www.youtube.com/results?search_query=kettlebell+horn+grip+russian+twist" target="_blank" class="exercise-link">KB Horn Grip Russian Twist</a> - 8 reps per side
-                    <br><small>Controlled rotation, engage obliques</small>
-                </li>
-            </ol>
-            
-            <p class="rest-note">Rest 60-90 seconds between rounds</p>
-
-            <div class="key-points">
-                <h3>Workout Guidelines:</h3>
-                <ul>
-                    <li><strong>Weight Selection:</strong> Use moderate weight for warm-up, heavier for strength work, lighter for cool-down</li>
-                    <li><strong>Tempo Focus:</strong> Follow prescribed tempos for maximum benefit - they control intensity</li>
-                    <li><strong>Rest Periods:</strong> Stick to rest times to maintain proper stimulus and recovery</li>
-                    <li><strong>Form First:</strong> Quality over quantity - reduce weight if form breaks down</li>
-                    <li><strong>Progression:</strong> Add weight or reps weekly, focus on one variable at a time</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="install-prompt" id="installPrompt">
-    Install this app for easy access!
-    <button class="install-btn" onclick="installApp()">Install</button>
-    <button class="install-btn" onclick="hideInstallPrompt()" style="background: #95a5a6;">Later</button>
-</div>
-
-<script>
-    // Timer functionality
-let workoutTimer = {
-startTime: null,
-elapsedTime: 0,
-isRunning: false,
-intervalId: null
+  );
 };
 
-function formatTime(seconds) {
-const mins = Math.floor(seconds / 60);
-const secs = seconds % 60;
-return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
-function updateTimerDisplay() {
-const currentTime = workoutTimer.isRunning ?
-workoutTimer.elapsedTime + Math.floor((Date.now() - workoutTimer.startTime) / 1000) :
-workoutTimer.elapsedTime;
-document.getElementById(‘timerDisplay’).textContent = formatTime(currentTime);
-}
-
-function startWorkout() {
-if (!workoutTimer.isRunning) {
-workoutTimer.startTime = Date.now();
-workoutTimer.isRunning = true;
-workoutTimer.intervalId = setInterval(updateTimerDisplay, 1000);
-
-```
-    document.getElementById('startBtn').style.display = 'none';
-    document.getElementById('pauseBtn').style.display = 'inline-block';
-    document.getElementById('startBtn').classList.add('active');
-    
-    showMessage('🏋️ Workout started! Good luck!', 'success');
-}
-```
-
-}
-
-function pauseWorkout() {
-if (workoutTimer.isRunning) {
-workoutTimer.elapsedTime += Math.floor((Date.now() - workoutTimer.startTime) / 1000);
-workoutTimer.isRunning = false;
-clearInterval(workoutTimer.intervalId);
-
-```
-    document.getElementById('startBtn').style.display = 'inline-block';
-    document.getElementById('pauseBtn').style.display = 'none';
-    document.getElementById('startBtn').textContent = '▶️ Resume';
-    
-    showMessage('⏸️ Workout paused', 'info');
-}
-```
-
-}
-
-function stopWorkout() {
-const finalTime = workoutTimer.isRunning ?
-workoutTimer.elapsedTime + Math.floor((Date.now() - workoutTimer.startTime) / 1000) :
-workoutTimer.elapsedTime;
-
-```
-if (finalTime > 0) {
-    const message = `🎉 Workout completed! Total time: ${formatTime(finalTime)}`;
-    showMessage(message, 'success');
-}
-
-// Reset timer
-workoutTimer.startTime = null;
-workoutTimer.elapsedTime = 0;
-workoutTimer.isRunning = false;
-clearInterval(workoutTimer.intervalId);
-
-document.getElementById('timerDisplay').textContent = '00:00';
-document.getElementById('startBtn').style.display = 'inline-block';
-document.getElementById('pauseBtn').style.display = 'none';
-document.getElementById('startBtn').textContent = '▶️ Start';
-document.getElementById('startBtn').classList.remove('active');
-```
-
-}
-
-// PWA Installation
-let deferredPrompt;
-
-window.addEventListener(‘beforeinstallprompt’, (e) => {
-e.preventDefault();
-deferredPrompt = e;
-document.getElementById(‘installPrompt’).style.display = ‘block’;
-});
-
-function installApp() {
-if (deferredPrompt) {
-deferredPrompt.prompt();
-deferredPrompt.userChoice.then((choiceResult) => {
-if (choiceResult.outcome === ‘accepted’) {
-console.log(‘User accepted the install prompt’);
-}
-deferredPrompt = null;
-hideInstallPrompt();
-});
-}
-}
-
-function hideInstallPrompt() {
-document.getElementById(‘installPrompt’).style.display = ‘none’;
-}
-
-// Workout Management
-let currentWorkout = {
-id: ‘strength’,
-title: ‘40-Minute Upper Body Strength & Flow’,
-content: null
-};
-
-// Initialize saved workouts from localStorage
-let savedWorkouts = JSON.parse(localStorage.getItem(‘savedWorkouts’) || ‘{}’);
-
-function toggleWorkoutSelector() {
-const selector = document.getElementById(‘workoutSelector’);
-const savedSelector = document.getElementById(‘savedWorkoutsSelector’);
-selector.style.display = selector.style.display === ‘none’ ? ‘block’ : ‘none’;
-savedSelector.style.display = ‘none’;
-}
-
-function hideWorkoutSelector() {
-document.getElementById(‘workoutSelector’).style.display = ‘none’;
-}
-
-function showSavedWorkouts() {
-document.getElementById(‘workoutSelector’).style.display = ‘none’;
-document.getElementById(‘savedWorkoutsSelector’).style.display = ‘block’;
-updateSavedWorkoutsList();
-}
-
-function hideSavedWorkouts() {
-document.getElementById(‘savedWorkoutsSelector’).style.display = ‘none’;
-document.getElementById(‘workoutSelector’).style.display = ‘block’;
-}
-
-function updateSavedWorkoutsList() {
-const listContainer = document.getElementById(‘savedWorkoutsList’);
-if (Object.keys(savedWorkouts).length === 0) {
-listContainer.innerHTML = ‘<p style="color: #7f8c8d; font-style: italic;">No saved workouts yet. Save your favorites!</p>’;
-} else {
-listContainer.innerHTML = Object.entries(savedWorkouts).map(([id, workout]) => `<div style="display: flex; align-items: center; margin: 5px 0;"> <button class="workout-type-btn" style="flex: 1;" onclick="loadSavedWorkout('${id}')">${workout.title}</button> <button class="workout-type-btn" style="background: #e74c3c; margin-left: 10px; padding: 10px;" onclick="deleteSavedWorkout('${id}')">🗑️</button> </div>`).join(’’);
-}
-}
-
-function saveCurrentWorkout() {
-const workoutName = prompt(‘Enter a name for this workout:’, currentWorkout.title);
-if (workoutName && workoutName.trim()) {
-const workoutId = Date.now().toString();
-savedWorkouts[workoutId] = {
-title: workoutName.trim(),
-content: document.getElementById(‘workoutContent’).innerHTML,
-savedDate: new Date().toLocaleDateString()
-};
-localStorage.setItem(‘savedWorkouts’, JSON.stringify(savedWorkouts));
-
-```
-    // Show success message
-    showMessage('💾 Workout saved successfully!', 'success');
-}
-```
-
-}
-
-function discardWorkout() {
-if (confirm(‘Are you sure you want to discard this workout? This action cannot be undone.’)) {
-// If it’s a saved workout, remove it from saved workouts
-if (savedWorkouts[currentWorkout.id]) {
-delete savedWorkouts[currentWorkout.id];
-localStorage.setItem(‘savedWorkouts’, JSON.stringify(savedWorkouts));
-}
-
-```
-    // Load default workout
-    loadWorkout('strength');
-    showMessage('🗑️ Workout discarded!', 'info');
-}
-```
-
-}
-
-function loadSavedWorkout(id) {
-if (savedWorkouts[id]) {
-currentWorkout = { id: id, title: savedWorkouts[id].title, content: savedWorkouts[id].content };
-document.getElementById(‘workoutContent’).innerHTML = savedWorkouts[id].content;
-hideWorkoutSelector();
-hideSavedWorkouts();
-showMessage(‘📁 Loaded saved workout!’, ‘success’);
-}
-}
-
-function deleteSavedWorkout(id) {
-if (confirm(‘Are you sure you want to delete this saved workout?’)) {
-delete savedWorkouts[id];
-localStorage.setItem(‘savedWorkouts’, JSON.stringify(savedWorkouts));
-updateSavedWorkoutsList();
-showMessage(‘🗑️ Saved workout deleted!’, ‘info’);
-}
-}
-
-function showMessage(message, type) {
-const messageDiv = document.createElement(‘div’);
-messageDiv.style.cssText = `position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: ${type === 'success' ? '#27ae60' : type === 'info' ? '#3498db' : '#e74c3c'}; color: white; padding: 12px 24px; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1001; font-weight: 600; transition: all 0.3s ease;`;
-messageDiv.textContent = message;
-document.body.appendChild(messageDiv);
-
-```
-setTimeout(() => {
-    messageDiv.style.opacity = '0';
-    messageDiv.style.transform = 'translateX(-50%) translateY(-20px)';
-    setTimeout(() => document.body.removeChild(messageDiv), 300);
-}, 2000);
-```
-
-}
-
-function loadWorkout(type) {
-const workouts = {
-‘strength’: {
-title: ‘40-Minute Upper Body Strength & Flow’,
-content: `<div class="workout-info"> <p><strong>Equipment:</strong> Single kettlebell (moderate to heavy weight)</p> <p><strong>Focus:</strong> Back, biceps, shoulders, triceps, core, and balance</p> <p><strong>Duration:</strong> 40 minutes</p> <p><strong>Structure:</strong> Flow warm-up → 2 strength components → core/balance cool-down</p> </div> <h2>Upper Body Flow Warm-Up <span class="section-time">8 minutes</span></h2> <p><strong>Complete 3 rounds, flowing smoothly between exercises</strong></p> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+halo+demonstration" target="_blank" class="exercise-link">KB Halo</a> - 5 reps each direction<br><small>Wake up shoulders and thoracic spine</small></li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+bottoms+up+clean" target="_blank" class="exercise-link">Alternating Bottoms Up KB Clean</a> - 8 reps total<br><small>Activate grip and shoulder stability</small></li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+arm+bar" target="_blank" class="exercise-link">KB Arm Bar</a> - 3 reps each side<br><small>Shoulder mobility and stability</small></li> </ol> <p class="rest-note">Rest 45 seconds between rounds</p> <div class="key-points"> <h3>Workout Guidelines:</h3> <ul> <li><strong>Weight Selection:</strong> Use moderate weight for warm-up, heavier for strength work</li> <li><strong>Form First:</strong> Quality over quantity - reduce weight if form breaks down</li> </ul> </div>`
-},
-‘morning’: {
-title: ‘20-Minute Morning Movement Flow’,
-content: `<div class="workout-info"> <p><strong>Equipment:</strong> Single kettlebell (moderate weight)</p> <p><strong>Focus:</strong> Full-body activation and energy boost</p> <p><strong>Duration:</strong> 20 minutes</p> </div> <h2>Dynamic Warm-Up <span class="section-time">5 minutes</span></h2> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+halo" target="_blank" class="exercise-link">KB Halo</a> - 5 reps each direction</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+goblet+squat" target="_blank" class="exercise-link">Goblet Squat</a> - 10 reps</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+deadlift" target="_blank" class="exercise-link">KB Deadlift</a> - 8 reps</li> </ol> <h2>Main Flow <span class="section-time">12 minutes</span></h2> <p>4 rounds of:</p> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+swing" target="_blank" class="exercise-link">KB Swings</a> - 15 reps</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+clean+press" target="_blank" class="exercise-link">Clean & Press</a> - 5 per arm</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+reverse+lunge" target="_blank" class="exercise-link">Reverse Lunge</a> - 6 per leg</li> </ol> <h2>Cool Down <span class="section-time">3 minutes</span></h2> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+windmill" target="_blank" class="exercise-link">KB Windmill</a> - 3 per side</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+carry" target="_blank" class="exercise-link">KB Carry</a> - 30 steps</li> </ol>`
-},
-‘lower’: {
-title: ‘35-Minute Lower Body Power’,
-content: `<div class="workout-info"> <p><strong>Equipment:</strong> Single kettlebell (heavy weight preferred)</p> <p><strong>Focus:</strong> Glutes, quads, hamstrings, and power development</p> <p><strong>Duration:</strong> 35 minutes</p> </div> <h2>Lower Body Activation <span class="section-time">8 minutes</span></h2> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+goblet+squat" target="_blank" class="exercise-link">Goblet Squats</a> - 15 reps</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+cossack+squat" target="_blank" class="exercise-link">Cossack Squats</a> - 8 per side</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+deadlift" target="_blank" class="exercise-link">KB Deadlifts</a> - 12 reps</li> </ol> <h2>Power Circuit <span class="section-time">20 minutes</span></h2> <p>5 rounds of:</p> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+swing" target="_blank" class="exercise-link">KB Swings</a> - 20 reps</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+goblet+squat" target="_blank" class="exercise-link">Goblet Squats</a> - 10 reps</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+single+leg+deadlift" target="_blank" class="exercise-link">Single Leg Deadlift</a> - 6 per leg</li> </ol> <p class="rest-note">Rest 90 seconds between rounds</p>`
-},
-‘hiit’: {
-title: ‘25-Minute HIIT Kettlebell Blast’,
-content: `<div class="workout-info"> <p><strong>Equipment:</strong> Single kettlebell (moderate weight)</p> <p><strong>Focus:</strong> High-intensity conditioning and fat burning</p> <p><strong>Duration:</strong> 25 minutes</p> </div> <h2>HIIT Rounds <span class="section-time">20 minutes</span></h2> <p><strong>8 rounds: 30 seconds work, 30 seconds rest</strong></p> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+swing" target="_blank" class="exercise-link">KB Swings</a></li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+thruster" target="_blank" class="exercise-link">KB Thrusters</a></li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+snatch" target="_blank" class="exercise-link">KB Snatches</a></li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+burpee" target="_blank" class="exercise-link">KB Burpees</a></li> </ol> <p class="rest-note">Repeat circuit 2 times with 2 minutes rest between circuits</p> <h2>Finisher <span class="section-time">5 minutes</span></h2> <p>100 KB Swings for time</p>`
-},
-‘recovery’: {
-title: ‘30-Minute Recovery & Mobility’,
-content: `<div class="workout-info"> <p><strong>Equipment:</strong> Single kettlebell (light weight)</p> <p><strong>Focus:</strong> Mobility, flexibility, and active recovery</p> <p><strong>Duration:</strong> 30 minutes</p> </div> <h2>Mobility Flow <span class="section-time">15 minutes</span></h2> <ol> <li><a href="https://www.youtube.com/results?search_query=kettlebell+halo" target="_blank" class="exercise-link">KB Halos</a> - 8 per direction</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+windmill" target="_blank" class="exercise-link">KB Windmills</a> - 5 per side</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+turkish+getup" target="_blank" class="exercise-link">Turkish Get-Up</a> - 3 per side</li> <li><a href="https://www.youtube.com/results?search_query=kettlebell+arm+bar" target="_blank" class="exercise-link">KB Arm Bar</a> - 5 per side</li> </ol> <h2>Gentle Stretching <span class="section-time">15 minutes</span></h2> <p>Hold each stretch for 60 seconds</p> <ul> <li>Hip flexor stretch</li> <li>Hamstring stretch</li> <li>Shoulder stretch</li> <li>Spinal twist</li> </ul>`
-}
-};
-
-```
-if (workouts[type]) {
-    currentWorkout = { id: type, title: workouts[type].title, content: workouts[type].content };
-    document.getElementById('workoutContent').innerHTML = workouts[type].content;
-    hideWorkoutSelector();
-    showMessage(`🏋️ Loaded: ${workouts[type].title}`, 'success');
-}
-```
-
-}
+export default KettlebellWorkoutPlanner;
